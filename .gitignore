@@ -1,0 +1,16 @@
+
+.coveralls.yml
+# C extensions
+
+.idea
+staticfiles/*
+bower_components/*
+
+
+# Unit test / coverage reports
+
+.coverage
+.coverage.*
+.coveralls.yml
+
+
