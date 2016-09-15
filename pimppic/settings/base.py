@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'social.apps.django_app.default',
     'rest_framework_social_oauth2',
+    'imagekit',
 ]
 
 
@@ -145,6 +146,6 @@ AUTHENTICATION_BACKENDS = (
     'rest_framework_social_oauth2.backends.DjangoOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
-# PROPRIETARY_BACKEND_NAME = ''
+PROPRIETARY_BACKEND_NAME = 'Facebook'
 
-# SOCIAL_AUTH_FACEBOOK_SECRET = ''
+SOCIAL_AUTH_FACEBOOK_SECRET = 'f6c75d4053056dd0bfdd07be5e94412a'
