@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    # url(r'^api/', include('pic.urls'), name='pic_api'),
+    url(r'^api/', include('pic.urls'), name='pic_api'),
     url(r'', include('social.apps.django_app.urls', namespace='social')),
     url(r'^auth/', include('rest_framework_social_oauth2.urls')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
