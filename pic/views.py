@@ -1,20 +1,61 @@
 from django.shortcuts import render
+from django.views.generic import View
 from django.contrib.auth.models import User
+from django.http import HttpResponse
+from rest_framework.response import Response
+from django.core.urlresolvers import reverse
 import time
+import json, os
 from .permissions import IsOwner
 from .serializers import FolderSerializer, ImageSerializer
-from .models import Image, Folder
+from .models import Photo, Folder
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
 )
+from rest_framework.views import APIView
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
     CreateAPIView,
 )
+from django.contrib.auth import login
+from social.apps.django_app.utils import load_backend, load_strategy, psa
+from social.apps.django_app.views import _do_login
+from .effect_processing import *
 # Create your views here.
 
+@psa('social:complete')
+def fb_auth_token(request, backend):
+    import ipdb; ipdb.set_trace()
+    token = request.GET.get('access_token')
+    user = request.backend.do_auth(token)
+    if user:
+        print(user)
+        print('marg')
+        return user
+
+
+class Register(APIView):
+    """Handle GET to /api/register/(?P<backend>[^/]+)/
+    GET:
+        Returns login status
+    """
+    permission_classes = (AllowAny,)
+
+    def get(self, request, backend, *args, **kwargs):
+        user = fb_auth_token(request, backend)
+        url = redirect_url = "social:complete"
+        if url and not url.startswith('/'):
+            url = reverse(redirect_url, args=(backend,))
+        if user:
+            login(request, user)
+            strategy = load_strategy(request)
+            backend = load_backend(strategy, backend, url)
+            _do_login(backend, user, user)
+            return Response("Login Successful!")
+        else:
+            return Response("Bad Credentials, check the Token and/or the UID", status=403)
 
 class ImagePreview(View):
 
@@ -22,7 +63,7 @@ class ImagePreview(View):
         img_id = request.POST.get('img_id', 0)
         effects = request.POST.get('effects', '')
         effect_obj = json.loads(effects)
-        photo = Image.objects.filter(id=img_id).first()
+        photo = Photo.objects.filter(id=img_id).first()
         response_data = {'image': ''}
         if photo:
             image_processor = ImageProcessor(photo)
@@ -39,7 +80,7 @@ class SharePhoto(View):
         share_id = request.GET.get('share_id', None)
         response_data = {}
         if share_id:
-            photo = Image.objects.filter(share_image=share_id).first()
+            photo = Photo.objects.filter(share_image=share_id).first()
             if photo:
                 serializer = ImageSerializer(photo)
                 response_data = serializer.data
@@ -68,10 +109,10 @@ class FolderApiView(ListCreateAPIView):
 
     # before create
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(creator=self.request.user)
 
     def get_queryset(self):
-        queryset = Folder.objects.filter(user=self.request.user)
+        queryset = Folder.objects.filter(creator=self.request.user)
         return queryset
 
 
@@ -117,7 +158,7 @@ class ImageApiView(ListCreateAPIView):
     def perform_create(self, serializer):
         folder_id = self.request.POST.get('folder_id', 0)
         folder = Folder.objects.filter(
-            user=self.request.user, id=folder_id).first()
+            creator=self.request.user, id=folder_id).first()
         img_code = int(time.time())
         if folder:
             instance = serializer.save(
@@ -127,16 +168,16 @@ class ImageApiView(ListCreateAPIView):
         instance.file_size = int(instance.image.size / 1000)
         instance.save()
 
-   def get_queryset(self):
+    def get_queryset(self):
         folder_id = self.kwargs.get('id', -1)
         if int(folder_id) == 0:
-            return Image.objects.filter(uploader=self.request.user, folder=None)
+            return Photo.objects.filter(uploader=self.request.user, folder=None)
         folder = Folder.objects.filter(id=folder_id)
         if(folder):
-            image = Image.objects.filter(
+            image = Photo.objects.filter(
                 uploader=self.request.user, folder=folder)
         else:
-            image = Image.objects.filter(uploader=self.request.user)
+            image = Photo.objects.filter(uploader=self.request.user)
         return image
 
 class SingleImageAPIView(RetrieveUpdateDestroyAPIView):
@@ -154,7 +195,7 @@ class SingleImageAPIView(RetrieveUpdateDestroyAPIView):
     Method: DELETE
         Response: JSON
     """
-    queryset = Image.objects.all()
+    queryset = Photo.objects.all()
     serializer_class = ImageSerializer
     permission_classes = [IsOwner]
     lookup_field = 'id'

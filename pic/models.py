@@ -30,7 +30,7 @@ class Folder(TimeStampMixin):
         return '{}, has {} photos'.format(self.name, self.get_no_of_images())
 
 
-class Image(TimeStampMixin):
+class Photo(TimeStampMixin):
     """Image model contains picture data and fields. """
     image = models.ImageField(upload_to='original', blank=True)
     image_thumbnail = ImageSpecField(source='image',
@@ -50,4 +50,4 @@ class Image(TimeStampMixin):
         unique_together = ('title', 'uploader')
 
     def __str__(self):
-        return self.image
+        return self.title

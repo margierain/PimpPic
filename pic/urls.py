@@ -1,8 +1,9 @@
 from django.conf.urls import url
-from views import FolderApiView, SingleFolderAPIView, ImageApiView, SingleImageAPIView, ImagePreview, SharePhoto
+from views import Register, FolderApiView, SingleFolderAPIView, ImageApiView, SingleImageAPIView, ImagePreview, SharePhoto
 
 
 urlpatterns = [
+    url(r'^login/$', Register.as_view(), name='login'),
     url(r'^folders/$', FolderApiView.as_view(), name='folder-list'),
     url(r'^folders/(?P<id>\d+)/$',
         SingleFolderAPIView.as_view(), name='folder-detail'),

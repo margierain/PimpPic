@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import TimeStampMixin, Folder, Image
+from .models import TimeStampMixin, Folder, Photo
 from rest_framework.serializers import (
     ModelSerializer,
 )
@@ -19,7 +19,7 @@ class ImageSerializer(TimeStampMixinSerializer):
     pass
 
     class Meta:
-        model = Folder
+        model = Photo
         fields = ('id', 'image', 'image_thumbnail', 'edited_image', 'title',
                   'effects', 'share_image', 'uploader', 'folder')
         read_only_fields = ('uploader', 'id')
