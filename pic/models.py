@@ -7,36 +7,47 @@ from imagekit.processors import ResizeToFill
 # Create your models here.
 
 
-class Image(models.Model):
+
+class TimeStampMixin(models.Model):
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+class Folder(TimeStampMixin):
+    name = models.CharField(max_length=100, default="untitled")
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['date_modified']
+        unique_together = ('name', 'creator')
+
+    def get_no_of_images(self):
+        return len(self.images.all())
+
+    def __str__(self):
+        return '{}, has {} photos'.format(self.name, self.get_no_of_images())
+
+
+class Image(TimeStampMixin):
     """Image model contains picture data and fields. """
-    image = models.ImageField(upload_to='images', blank=True)
+    image = models.ImageField(upload_to='original', blank=True)
     image_thumbnail = ImageSpecField(source='image',
                                      processors=[ResizeToFill(300, 150)],
                                      format='JPEG',
                                      options={'quality': 60})
+    edited_image = models.CharField(max_length=255, default="")
+    title = models.CharField(max_length=100, default="")
+    effects = models.CharField(max_length=100, default='NONE')
+    share_image = models.CharField(max_length=50, default="")
     uploader = models.ForeignKey(User, on_delete=models.CASCADE)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
-
+    folder = models.ForeignKey(
+        Folder, on_delete=models.CASCADE, null=True, blank=True, related_name='images')
 
     class Meta:
         ordering = ['date_modified']
+        unique_together = ('title', 'uploader')
 
     def __str__(self):
         return self.image
-
-
-
-class Img_edited(models.Model):
-    """Edited images model """
-    image_name = models.ImageField('img', upload_to='edited_img/')
-    effect = models.CharField(max_length=100)
-    original_img = models.ForeignKey(Image, on_delete=models.CASCADE)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-date_modified']
-
-    def __str__(self):
-        return '{} applied {} effect'.format(self.original_img, self.effect)
