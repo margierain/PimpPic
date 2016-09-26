@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,17 +38,21 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
     'corsheaders',
-    'rest_framework',
-    'django_nose',
     'pic',
-    'oauth2_provider',
-    'social.apps.django_app.default',
-    'rest_framework_social_oauth2',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'django_nose',
     'imagekit',
+    'rest_auth',
+    'allauth',
+    'allauth.account',
+    'rest_auth.registration',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
 ]
-
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -76,16 +81,14 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'social.apps.django_app.context_processors.backends',
-                'social.apps.django_app.context_processors.login_redirect',
             ],
         },
     },
 ]
 
+
 WSGI_APPLICATION = 'pimppic.wsgi.application'
-
-
+REST_USE_JWT = True
 # Database
 
 
@@ -121,31 +124,54 @@ USE_L10N = True
 
 USE_TZ = True
 
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'oauth2_provider.ext.rest_framework.OAuth2Authentication',
-        'rest_framework_social_oauth2.authentication.SocialAuthentication',
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+    )
 }
 
+JWT_AUTH = {
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=3000),
+}
+REST_SESSION_LOGIN = False
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+SITE_ID = 1
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = os.path.join(BASE_DIR, 'static'),
+STATICFILES_DIRS = os.path.join('../',BASE_DIR, 'static'),
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_ROOT = 'media'
 MEDIA_URL = '/media/'
+SOCIALACCOUNT_STORE_TOKENS = True
+
 
 AUTHENTICATION_BACKENDS = (
-    'social.backends.facebook.FacebookAppOAuth2',
-    'social.backends.facebook.FacebookOAuth2',
-    'rest_framework_social_oauth2.backends.DjangoOAuth2',
     'django.contrib.auth.backends.ModelBackend',
-)
-PROPRIETARY_BACKEND_NAME = 'Facebook'
+    'allauth.account.auth_backends.AuthenticationBackend', )
 
-SOCIAL_AUTH_FACEBOOK_SECRET = 'f6c75d4053056dd0bfdd07be5e94412a'
+
+LOGIN_URL = '/'
+
+LOGIN_REDIRECT_URL = '/api/folders/'
+
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+SOCIALACCOUNT_PROVIDERS = {'facebook': {
+    'SCOPE': ['email'],
+    'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+    'METHOD': 'oauth2',
+    'LOCALE_FUNC': lambda request: 'en_US', }}

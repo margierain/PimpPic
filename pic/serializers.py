@@ -7,7 +7,6 @@ from rest_framework.serializers import (
 
 
 class TimeStampMixinSerializer(ModelSerializer):
-    pass
 
     class Meta:
         model = TimeStampMixin
@@ -16,13 +15,12 @@ class TimeStampMixinSerializer(ModelSerializer):
 
 
 class ImageSerializer(TimeStampMixinSerializer):
-    pass
 
     class Meta:
         model = Photo
         fields = ('id', 'image', 'image_thumbnail', 'edited_image', 'title',
                   'effects', 'share_image', 'uploader', 'folder')
-        read_only_fields = ('uploader', 'id')
+        read_only_fields = ('id', 'uploader',)
 
 
 class FolderSerializer(TimeStampMixinSerializer):
@@ -31,5 +29,5 @@ class FolderSerializer(TimeStampMixinSerializer):
 
     class Meta:
         model = Folder
-        fields = ('id', 'name', 'creator')
+        fields = ('id', 'name', 'creator', 'images')
         read_only_fields = ('creator', 'id',)

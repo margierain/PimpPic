@@ -5,7 +5,8 @@ from django.http import HttpResponse
 from rest_framework.response import Response
 from django.core.urlresolvers import reverse
 import time
-import json, os
+import json
+import os
 from .permissions import IsOwner
 from .serializers import FolderSerializer, ImageSerializer
 from .models import Photo, Folder
@@ -19,43 +20,18 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     CreateAPIView,
 )
-from django.contrib.auth import login
-from social.apps.django_app.utils import load_backend, load_strategy, psa
-from social.apps.django_app.views import _do_login
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from rest_auth.registration.views import SocialLoginView
 from .effect_processing import *
 # Create your views here.
 
-@psa('social:complete')
-def fb_auth_token(request, backend):
-    import ipdb; ipdb.set_trace()
-    token = request.GET.get('access_token')
-    user = request.backend.do_auth(token)
-    if user:
-        print(user)
-        print('marg')
-        return user
 
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
+    client_class = OAuth2Client
+    callback_url = 'https://localhost:8000/api/folder/'
 
-class Register(APIView):
-    """Handle GET to /api/register/(?P<backend>[^/]+)/
-    GET:
-        Returns login status
-    """
-    permission_classes = (AllowAny,)
-
-    def get(self, request, backend, *args, **kwargs):
-        user = fb_auth_token(request, backend)
-        url = redirect_url = "social:complete"
-        if url and not url.startswith('/'):
-            url = reverse(redirect_url, args=(backend,))
-        if user:
-            login(request, user)
-            strategy = load_strategy(request)
-            backend = load_backend(strategy, backend, url)
-            _do_login(backend, user, user)
-            return Response("Login Successful!")
-        else:
-            return Response("Bad Credentials, check the Token and/or the UID", status=403)
 
 class ImagePreview(View):
 
@@ -69,7 +45,7 @@ class ImagePreview(View):
             image_processor = ImageProcessor(photo)
             image_processor.process(effect_obj)
             response_data = {'image': image_processor.preview(
-                ), 'applied_effects': image_processor.applied_effects()}
+            ), 'applied_effects': image_processor.applied_effects()}
         response_json = json.dumps(response_data)
         return HttpResponse(response_json, content_type="application/json")
 
@@ -160,25 +136,27 @@ class ImageApiView(ListCreateAPIView):
         folder = Folder.objects.filter(
             creator=self.request.user, id=folder_id).first()
         img_code = int(time.time())
+        print(img_code)
         if folder:
             instance = serializer.save(
-                creator=self.request.user, share_image=img_code)
+                uploader=self.request.user, share_image=img_code)
         instance = serializer.save(
-            creator=self.request.user, folder=folder, share_image=img_code)
+            uploader=self.request.user, folder=folder, share_image=img_code)
         instance.file_size = int(instance.image.size / 1000)
         instance.save()
 
     def get_queryset(self):
-        folder_id = self.kwargs.get('id', -1)
+        folder_id = self.kwargs.get('id', 0)
         if int(folder_id) == 0:
             return Photo.objects.filter(uploader=self.request.user, folder=None)
-        folder = Folder.objects.filter(id=folder_id)
+        folder = Folder.objects.filter(id=folder_id).first()
         if(folder):
             image = Photo.objects.filter(
                 uploader=self.request.user, folder=folder)
         else:
             image = Photo.objects.filter(uploader=self.request.user)
         return image
+
 
 class SingleImageAPIView(RetrieveUpdateDestroyAPIView):
 
