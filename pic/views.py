@@ -132,23 +132,22 @@ class ImageApiView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
+        import ipdb; ipdb.set_trace()
+        folder_id = self.kwargs.get('id', 0)
         folder_id = self.request.POST.get('folder_id', 0)
         folder = Folder.objects.filter(
             creator=self.request.user, id=folder_id).first()
-        img_code = int(time.time())
-        print(img_code)
+        img_code = str(time.time())
         if folder:
             instance = serializer.save(
-                uploader=self.request.user, share_image=img_code)
+                uploader=self.request.user, folder=folder, share_image=img_code)
         instance = serializer.save(
-            uploader=self.request.user, folder=folder, share_image=img_code)
+            uploader=self.request.user, share_image=img_code)
         instance.file_size = int(instance.image.size / 1000)
         instance.save()
 
     def get_queryset(self):
         folder_id = self.kwargs.get('id', 0)
-        if int(folder_id) == 0:
-            return Photo.objects.filter(uploader=self.request.user, folder=None)
         folder = Folder.objects.filter(id=folder_id).first()
         if(folder):
             image = Photo.objects.filter(

@@ -14,6 +14,8 @@ urlpatterns = [
         SingleFolderAPIView.as_view(), name='folder-detail'),
     url(r'^folders/(?P<id>\d+)/images/$',
         ImageApiView.as_view(), name='folder-photos'),
+    # url(r'^folders/(?P<id>\d+)/images/(?P<id>\d+)/$',
+    #     ImageApiView.as_view(), name='single_folder-photos'),
     url(r'^images/$', ImageApiView.as_view(), name='image-list'),
     url(r'^images/(?P<id>\d+)/$', SingleImageAPIView.as_view(), name='single-image'),
     url(r'^image/share/$', SharePhoto.as_view(), name='share-photo'),

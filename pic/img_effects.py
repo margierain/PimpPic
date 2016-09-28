@@ -7,6 +7,7 @@ from PIL import (
     ImageOps, ImageEnhance, ImageDraw,
     ImageFont
 )
+
 class ImageEffects:
     filters = {
         'blur': ImageFilter.BLUR,
@@ -177,6 +178,7 @@ class ImageEffects:
 
     def preview(self):
         """ Returns a base64 converted image """
+        print('preview')
         buffered = cStringIO.StringIO()
         self.image.save(buffered, format=self.image_format)
         return base64.b64encode(buffered.getvalue())

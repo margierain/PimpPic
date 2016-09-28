@@ -1,12 +1,9 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import TimeStampMixin, Folder, Photo
-from rest_framework.serializers import (
-    ModelSerializer,
-)
 
 
-class TimeStampMixinSerializer(ModelSerializer):
+class TimeStampMixinSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TimeStampMixin
@@ -15,12 +12,18 @@ class TimeStampMixinSerializer(ModelSerializer):
 
 
 class ImageSerializer(TimeStampMixinSerializer):
+    thumbnail_url = serializers.CharField(
+        source='image_thumbnail_url', read_only=True)
+    print('hvgcbnxbvhbn')
+    print(thumbnail_url)
 
     class Meta:
         model = Photo
-        fields = ('id', 'image', 'image_thumbnail', 'edited_image', 'title',
-                  'effects', 'share_image', 'uploader', 'folder')
-        read_only_fields = ('id', 'uploader',)
+        fields = ('id', 'image', 'edited_image', 'title',
+                  'effects', 'share_image', 'uploader', 'folder', 'thumbnail_url')
+        read_only_fields = ('id', 'uploader', 'share_image', 'share_image',
+                            'edited_image')
+        # write_only_fields = ('image', 'image_thumbnail',)
 
 
 class FolderSerializer(TimeStampMixinSerializer):

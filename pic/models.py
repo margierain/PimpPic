@@ -43,11 +43,14 @@ class Photo(TimeStampMixin):
     share_image = models.CharField(max_length=50, default="")
     uploader = models.ForeignKey(User, on_delete=models.CASCADE)
     folder = models.ForeignKey(
-        Folder, on_delete=models.CASCADE, null=True, blank=True, related_name='images')
+        Folder, on_delete=models.CASCADE, null=True, blank=True, default="", related_name='images')
+
+    def image_thumbnail_url(self):
+        return self.image_thumbnail.url
 
     class Meta:
         ordering = ['date_modified']
-        unique_together = ('title', 'uploader')
+
 
     def __str__(self):
         return self.title
