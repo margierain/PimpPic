@@ -7,13 +7,13 @@ from imagekit.processors import ResizeToFill
 # Create your models here.
 
 
-
 class TimeStampMixin(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
+
 
 class Folder(TimeStampMixin):
     name = models.CharField(max_length=100, default="untitled")
@@ -39,18 +39,18 @@ class Photo(TimeStampMixin):
                                      options={'quality': 60})
     edited_image = models.CharField(max_length=255, default="")
     title = models.CharField(max_length=100, default="")
-    effects = models.CharField(max_length=100, default='NONE')
+    effects = models.CharField(max_length=100, default="")
     share_image = models.CharField(max_length=50, default="")
     uploader = models.ForeignKey(User, on_delete=models.CASCADE)
     folder = models.ForeignKey(
-        Folder, on_delete=models.CASCADE, null=True, blank=True, default="", related_name='images')
-
-    def image_thumbnail_url(self):
-        return self.image_thumbnail.url
+        Folder, on_delete=models.CASCADE, null=True, blank=True, default="",
+        related_name='images')
 
     class Meta:
         ordering = ['date_modified']
 
+    def image_thumbnail_url(self):
+        return self.image_thumbnail.url
 
     def __str__(self):
         return self.title

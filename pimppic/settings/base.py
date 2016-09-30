@@ -16,7 +16,6 @@ import datetime
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
@@ -128,6 +127,8 @@ USE_TZ = True
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.authentication.TokenAuthentication',
+
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
@@ -166,12 +167,6 @@ AUTHENTICATION_BACKENDS = (
 
 LOGIN_URL = '/'
 
-LOGIN_REDIRECT_URL = '/api/folders/'
+LOGIN_REDIRECT_URL = 'http://localhost:4200/home'
 
-SOCIALACCOUNT_QUERY_EMAIL = True
-
-SOCIALACCOUNT_PROVIDERS = {'facebook': {
-    'SCOPE': ['email'],
-    'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
-    'METHOD': 'oauth2',
-    'LOCALE_FUNC': lambda request: 'en_US', }}
+SOCIALACCOUNT_QUERY_EMAIL = False

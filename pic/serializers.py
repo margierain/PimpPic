@@ -14,16 +14,13 @@ class TimeStampMixinSerializer(serializers.ModelSerializer):
 class ImageSerializer(TimeStampMixinSerializer):
     thumbnail_url = serializers.CharField(
         source='image_thumbnail_url', read_only=True)
-    print('hvgcbnxbvhbn')
-    print(thumbnail_url)
 
     class Meta:
         model = Photo
-        fields = ('id', 'image', 'edited_image', 'title',
-                  'effects', 'share_image', 'uploader', 'folder', 'thumbnail_url')
+        fields = ('id', 'image', 'edited_image', 'title', 'effects',
+                  'share_image', 'uploader', 'folder', 'thumbnail_url')
         read_only_fields = ('id', 'uploader', 'share_image', 'share_image',
                             'edited_image')
-        # write_only_fields = ('image', 'image_thumbnail',)
 
 
 class FolderSerializer(TimeStampMixinSerializer):
