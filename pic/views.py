@@ -20,34 +20,29 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     CreateAPIView,
 )
-from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from rest_auth.registration.views import SocialLoginView
+
 from .effect_processing import *
-# Create your views here.
-
-
-class FacebookLogin(SocialLoginView):
-    adapter_class = FacebookOAuth2Adapter
-    client_class = OAuth2Client
 
 
 
-class ImagePreview(APIView):
-    permission_classes = [AllowAny,]
+class ImagePreview(RetrieveUpdateDestroyAPIView):
+    queryset = Photo.objects.all()
+    serializer_class = ImageSerializer
+    permission_classes = [IsOwner]
+    lookup_field = 'id'
 
-    def post(self, request, *args, **kwargs):
+    def perform_update(self, request, *args, **kwargs):
         img_id = self.kwargs.get('id', 0)
-        effects = request.POST.get('effects', '')
-        if effects:
-            effect_obj = json.loads(effects)
+        effect_obj = str(self.request.data.get('effects', ''))
         photo = Photo.objects.filter(id=img_id).first()
         response_data = {'image': ''}
-        if photo:
+        if photo and effect_obj:
             image_processor = ImageProcessor(photo)
             image_processor.process(effect_obj)
-            response_data = {'image': image_processor.preview(
-            ), 'applied_effects': image_processor.applied_effects()}
+            response_data = {
+                'image': image_processor.preview(),
+                'applied_effects': image_processor.applied_effects()
+            }
         response_json = json.dumps(response_data)
         return HttpResponse(response_json, content_type="application/json")
 
@@ -63,7 +58,8 @@ class SharePhoto(View):
             response_data = serializer.data
             print(response_data)
         response_json = json.dumps(response_data)
-        return HttpResponse(response_data["image"], content_type="application/json")
+        return HttpResponse(
+            response_data["image"], content_type="application/json")
 
 
 class FolderApiView(ListCreateAPIView):
@@ -82,9 +78,13 @@ class FolderApiView(ListCreateAPIView):
     """
 
     serializer_class = FolderSerializer
-    permission_classes = [IsAuthenticated]
+
 
     def perform_create(self, serializer):
+        # print(dir(self))
+        # print(self.headers)
+        # print('user')
+        # print(self.request.user)
         serializer.save(creator=self.request.user)
 
     def get_queryset(self):
@@ -129,10 +129,9 @@ class ImageApiView(ListCreateAPIView):
     """
 
     serializer_class = ImageSerializer
-    permission_classes = [IsAuthenticated]
+
 
     def perform_create(self, serializer):
-        # import ipdb; ipdb.set_trace()
         folder_id = self.kwargs.get('id', 0)
         folder_id = self.request.POST.get('folder_id', 0)
         folder = Folder.objects.filter(
@@ -182,9 +181,10 @@ class SingleImageAPIView(RetrieveUpdateDestroyAPIView):
         instance = serializer.save()
         image_processor = ImageProcessor(instance)
         if instance.effects:
-            effect_obj = json.loads(instance.effects)
+            effect_obj = instance.effects
             image_processor.process(effect_obj)
             edited_path = image_processor.save()
+            edited_path = edited_path.replace('/media/', '')
             instance.edited_image = edited_path
             instance.save()
 

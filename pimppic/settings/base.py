@@ -45,12 +45,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_nose',
     'imagekit',
-    'rest_auth',
-    'allauth',
-    'allauth.account',
-    'rest_auth.registration',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.facebook',
+    'social.apps.django_app.default',
+    'oauth2_provider',
+    'rest_framework_social_oauth2',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -63,6 +60,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'social.apps.django_app.middleware.SocialAuthExceptionMiddleware',
+
 
 ]
 
@@ -80,6 +79,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social.apps.django_app.context_processors.backends',
+                'social.apps.django_app.context_processors.login_redirect',
             ],
         },
     },
@@ -125,15 +126,17 @@ USE_TZ = True
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-        'rest_framework.authentication.TokenAuthentication',
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    #     'rest_framework.authentication.TokenAuthentication',
 
-    ),
+    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'oauth2_provider.ext.rest_framework.OAuth2Authentication',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework_social_oauth2.authentication.SocialAuthentication',
     )
 }
 
@@ -141,17 +144,16 @@ JWT_AUTH = {
     'JWT_ALLOW_REFRESH': True,
     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=3000),
 }
-REST_SESSION_LOGIN = False
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+REST_SESSION_LOGIN = True
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 SITE_ID = 1
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = os.path.join('../',BASE_DIR, 'static'),
+STATICFILES_DIRS = os.path.join('../', BASE_DIR, 'static'),
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -161,12 +163,15 @@ SOCIALACCOUNT_STORE_TOKENS = True
 
 
 AUTHENTICATION_BACKENDS = (
+    'social.backends.facebook.FacebookOAuth2',
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend', )
+    )
 
 
-LOGIN_URL = '/'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://localhost:4200/home'
+SOCIAL_AUTH_LOGIN_URL = '/'
 
-LOGIN_REDIRECT_URL = 'http://localhost:4200/home'
-
+SOCIAL_AUTH_FACEBOOK_SECRET = 'e22f87739b7589ef9c1cd28af96212c0'
+SOCIAL_AUTH_FACEBOOK_KEY = 1171930142882377
 SOCIALACCOUNT_QUERY_EMAIL = False

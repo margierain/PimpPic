@@ -17,7 +17,7 @@ class ImageSerializer(TimeStampMixinSerializer):
 
     class Meta:
         model = Photo
-        fields = ('id', 'image', 'edited_image', 'title', 'effects',
+        fields = ('id', 'image', 'edited_image', 'effects',
                   'share_image', 'uploader', 'folder', 'thumbnail_url')
         read_only_fields = ('id', 'uploader', 'share_image', 'share_image',
                             'edited_image')

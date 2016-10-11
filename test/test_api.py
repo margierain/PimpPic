@@ -1,57 +1,32 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
 import os
 import json
+from pic.models import Photo, Folder
 
 # Facebook graphapi test user access token
 access_token = 'EAACEdEose0cBAAoO8BU1w58FzkZAHBlcgItTQdPu9OSVDmSrdaZAMQRFSZBQUbpiroFAVKFJYjOgp6PWDcU0jjq5HnfP9T3m6uBn2QZAVqxhZAgII9gE0oMmBSocXDObeJi2ygQbBwFSxyIqlbUudn2q4ElYCEPLuWPgg9ZAhWQAZDZD'
 
 
-class FbLoginTest(APITestCase):
+class ImageAPITest(APITestCase):
+
     def setUp(self):
-        self.driver = webdriver.Firefox()
-        self.driver.get("/api/register/facebook/?access_token=" + access_token)
-
-    def test_login(self):
-        """Test user can login with fb"""
-        driver = self.driver
-        facebookUsername = os.getenv('facebookUsername')
-        facebookPassword = os.getenv('facebookPassword')
-        emailFieldID = "email"
-        passFieldID = "pass"
-        loginButtonXpath = "//input[@value='Log In']"
-        fbLogoXpath = "(//a[contains(@href, 'logo')])[1]"
-
-        emailFieldElement = WebDriverWait(driver, 10).until(
-            lambda driver: driver.find_element_by_id(emailFieldID))
-        passFieldElement = WebDriverWait(driver, 10).until(
-            lambda driver: driver.find_element_by_id(passFieldID))
-        loginButtonElement = WebDriverWait(driver, 10).until(
-            lambda driver: driver.find_element_by_xpath(loginButtonXpath))
-
-        emailFieldElement.clear()
-        emailFieldElement.send_keys(facebookUsername)
-        passFieldElement.clear()
-        passFieldElement.send_keys(facebookPassword)
-        loginButtonElement.click()
-        WebDriverWait(driver, 10). until(
-            lambda driver: driver.find_element_by_xpath(fbLogoXpath))
-
-    def test_login_user(self):
-        """Test redirect to dashboard for an already authenticated user."""
-         user_credentials = {
-            'password': facebookPassword,
-            'email': facebookUsername,
-        }
-        self.client.post(reverse("fb_login"), user_credentials)
-        response = self.client.get(reverse("dashboard"))
-        self.assertRedirects(response, "https://picfront.firebaseapp.com/dashboard")
-
-    def tearDown(self):
-        self.driver.quit()
-
+        """Create test user and test images"""
+        self.client.get("/api/register/facebook/?access_token=" + access_token)
+        Folder.objects.create(name="Adventure")
+        Photo.objects.create(image="images/adventure.png",
+                            edited_image = "images/adventure.png",
+                            folder = null,
+                             date_created="2016-08-03 11:12:12.959349+03",
+                             date_modified="2016-08-03 11:12:12.95939+03",
+                             category=1, uploader_id=1)
+        Photo.objects.create(image="images/fashion.png",
+                            edited_image = "images/adventure.png",
+                            folder = 1,
+                             date_created="2016-08-03 11:12:12.959349+03",
+                             date_modified="2016 - 08 - 03 11: 12: 12.95939 + 03",
+                             uploader_id=1)
 
 def create_folder(client, name):
         """Set up folder to store test images"""

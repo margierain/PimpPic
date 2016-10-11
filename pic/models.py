@@ -37,8 +37,7 @@ class Photo(TimeStampMixin):
                                      processors=[ResizeToFill(300, 150)],
                                      format='JPEG',
                                      options={'quality': 60})
-    edited_image = models.CharField(max_length=255, default="")
-    title = models.CharField(max_length=100, default="")
+    edited_image = models.ImageField(upload_to='edited', blank=True)
     effects = models.CharField(max_length=100, default="")
     share_image = models.CharField(max_length=50, default="")
     uploader = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -53,4 +52,4 @@ class Photo(TimeStampMixin):
         return self.image_thumbnail.url
 
     def __str__(self):
-        return self.title
+        return self.effects

@@ -1,14 +1,12 @@
 from django.conf.urls import url, include
 from views import (
-    FacebookLogin, FolderApiView,
+    FolderApiView,
     SingleFolderAPIView, ImageApiView,
     SingleImageAPIView, ImagePreview, SharePhoto
 )
 
 
 urlpatterns = [
-    url(r'^account/', include('allauth.urls')),
-    url(r'^facebook/$', FacebookLogin.as_view(), name='fb_login'),
     url(r'^folders/$', FolderApiView.as_view(), name='folder-list'),
     url(r'^folders/(?P<id>\d+)/$',
         SingleFolderAPIView.as_view(), name='folder-detail'),
@@ -19,4 +17,5 @@ urlpatterns = [
     url(r'^images/(?P<id>\d+)/share/$', SharePhoto.as_view(), name='share-photo'),
     url(r'^images/(?P<id>\d+)/preview/$',
         ImagePreview.as_view(), name='photo-preview'),
+
 ]

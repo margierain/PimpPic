@@ -1,5 +1,5 @@
 from img_effects import *
-
+import json
 
 class ImageProcessor:
 
@@ -8,13 +8,20 @@ class ImageProcessor:
         self.img_effects = ImageEffects(photo.image.path)
 
     def process(self, effect_obj):
+        effect_obj = json.loads(effect_obj)
         for effect_type in effect_obj:
+            effect_type = str(effect_type)
             effect_data = effect_obj[effect_type]
-            if(effect_data):
+            if ("enhance" or "effect" in effect_type):
+                editor_method = getattr(self, effect_type)
+                if editor_method:
+                       editor_method(effect_data)
+            effect_data = str(effect_data)
+            if(effect_data) and ("enhance" not in effect_type):
                 try:
                     editor_method = getattr(self, effect_type)
                     if editor_method:
-                        editor_method(effect_data)
+                       editor_method(effect_data)
                 except:
                     pass
 
@@ -22,26 +29,25 @@ class ImageProcessor:
         return self.img_effects.preview()
 
     def applied_effects(self):
-        return self.img_effects.effects_applied
+        return self.img_effects.effect_applied
 
     def save(self):
         self.img_effects.save()
         return self.image.url.replace('original', 'edited')
 
     def enhance(self, effect_data):
-        for effect_data_type in effect_data:
-            self.img_effects.enhance(
-                effect_data_type, float(effect_data[effect_data_type]))
+        effect = str(effect_data[0])
+        self.img_effects.enhance(
+            effect, float(str(effect_data[1])))
+
 
     def filter(self, effect_data):
-        for effect_data_type in effect_data:
-            self.img_effects.filter(effect_data_type)
+        self.img_effects.filter(effect_data)
 
     def transform(self, effect_data):
-        for effect_data_type in effect_data:
-            effect = getattr(self.img_effects, effect_data_type)
-            if effect:
-                effect()
+        effect = getattr(self.img_effects, effect_data)
+        if effect:
+            effect()
 
     def text_overlay(self, effect_data):
         height = self.image._get_height()
@@ -69,7 +75,7 @@ class ImageProcessor:
         self.img_effects.expand(int(size), color)
 
     def effect(self, effect_data):
-        for effect_data_type in effect_data:
-            effect = getattr(self.img_effects, effect_data_type)
-            if effect:
-                effect(effect_data[effect_data_type])
+        effect = str(effect_data[0])
+        print(effect)
+        apply = getattr(self.img_effects, effect)
+        apply(float(str(effect_data[1])))

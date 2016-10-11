@@ -24,37 +24,43 @@ class ImageEffects:
     enhancements = ['Brightness', 'Color', 'Contrast', 'Sharpness']
     image_format = 'JPEG'
     max_enhance = 2.0
-    effects_applied = []
 
     def __init__(self, path):
         self.path = path
         self.font = None
+        self.effect_applied = []
         try:
             self.image = Image.open(path)
         except:
             raise ValueError('Image not found in this path')
 
-    def effect_applied(self, effect_name):
-        self.effects_applied.append(effect_name)
+    def effects_applied(self, effect_name):
+        self.effect_applied.append(effect_name)
 
     def convert(self, mode="RGB"):
+        print('covert')
         self.image = self.image.convert(mode)
+        self.save()
 
     def black_and_white(self):
         """ Applies black and white effect"""
+        print(self)
         self.convert('L')
         self.effects_applied('black_and_white')
+        self.save()
 
     def grayscale(self):
         """ Applies grayscale effect"""
         self.image = ImageOps.grayscale(self.image)
         self.effects_applied('grayscale')
+        self.save()
 
     def invert(self):
         """ Negates the image. """
         self.convert()
         self.image = ImageOps.invert(self.image)
         self.effects_applied('invert')
+
 
     def equalize(self):
         """ Equalize the image histogram. """
@@ -65,15 +71,17 @@ class ImageEffects:
         """ Applies elected filters. """
         self.image = self.image.filter(self.filters[filter_type])
         self.effects_applied(self.filters[filter_type])
+        self.save()
 
     def enhance(self, enhancement_type, value):
         """
         Used to enhance image brightness,
         color, contrast and sharpness.
         """
-        enhancer = getattr(ImageEnhance, enhancement_type)
+        # import ipdb; ipdb.set_trace()
+        enhancer = getattr(ImageEnhance, str(enhancement_type))
         if enhancer:
-            enhance_value = (value / 100) * self.max_enhance
+            enhance_value = (value / 10) * self.max_enhance
             enhanced = enhancer(self.image)
             self.image = enhanced.enhance(enhance_value)
             self.effects_applied(enhancement_type)
@@ -83,81 +91,94 @@ class ImageEffects:
         Convert the image to 'P' mode with the
         specified number of colors.
         """
-        actual_value = float(value) / 100 * 256
+        actual_value = float(value) / 10 * 256
         self.image = self.image.quantize(int(actual_value))
         self.image = self.image.convert('RGB')
         self.effects_applied('quantize')
 
     def gaussian_blur(self, radius):
         """ Gaussian blur filter. """
-        actual_value = float(radius)/100 * 20
+        actual_value = float(radius)/10 * 20
         self.image = self.image.filter(
             ImageFilter.GaussianBlur(int(actual_value)))
         self.effects_applied('gaussian_blur')
+        self.save()
 
     def contrast(self, cutoff=0):
         """ Normalize image contrast. """
+        print('contra')
         self.convert()
-        actual_value = float(cutoff)/100 * 50
+        actual_value = float(cutoff)/10 * 50
         self.image = ImageOps.autocontrast(self.image, int(actual_value))
         self.effects_applied('equalize')
+        self.save()
 
     def posterize(self, bit=1):
         """ Reduce the number of bits for each color channel. """
         self.convert()
-        actual_value = float(bit)/100 * 8
+        actual_value = float(bit)/10 * 8
         self.image = ImageOps.posterize(self.image, int(actual_value))
         self.effects_applied('posterize')
+        self.save()
 
     def unsharp_mask(self, radius):
         """ Unsharp mask filter. """
         self.image = self.image.filter(ImageFilter.UnsharpMask(int(radius)))
         self.effects_applied('unsharp_mask')
+        self.save()
 
     def solarize(self, threshold=128):
         """ Invert all pixel values above a threshold """
         self.convert()
-        actual_value = float(threshold) / 100 * 256
+        actual_value = float(threshold) / 10 * 256
         self.image = ImageOps.solarize(self.image, int(actual_value))
         self.effects_applied('solarize')
+        self.save()
 
-    def remove_border(self, border_size=0):
+    def zoom(self, border_size=0):
         """ Remove image border. """
-        actual_value = float(border_size) / 100 * 200
+        actual_value = float(border_size) / 10 * 200
         self.image = ImageOps.crop(self.image, int(actual_value))
         self.effects_applied('zoom')
+        self.save()
 
     def rotate(self, value):
         """ Rotates image in a given angle. """
-        actual_value = float(value)/100 * 360
+        actual_value = float(value)/10 * 360
         self.image = self.image.rotate(int(actual_value))
         self.effects_applied('rotate')
+        self.save()
 
     def colorize(self, black="#000", white="#fff"):
         """ applies colors to black and white image """
         self.black_and_white()
         self.image = ImageOps.colorize(self.image, black, white)
         self.effects_applied('colorize')
+        self.save()
 
     def expand(self, border=10, fill="#ff0"):
         """ Add border to image """
         self.image = ImageOps.expand(self.image, border=border, fill=fill)
         self.effects_applied('border')
+        self.save()
 
     def vertical_flip(self):
         """ Flip the image vertically (top to bottom). """
         self.image = ImageOps.flip(self.image)
         self.effects_applied('vertical_flip')
+        self.save()
 
     def mirror(self):
         """ Flip image horizontally (left to right). """
         self.image = ImageOps.mirror(self.image)
         self.effects_applied('mirror')
+        self.save()
 
     def crop(self, border=15):
         """ Reduces image size. """
         self.image = ImageOps.crop(self.image, border=border)
         self.effects_applied('crop')
+        self.save()
 
     def set_font(self, font_size=100, font_name="TRIBTWO.ttf"):
         """ Sets the font to be used for text drawing """
@@ -185,13 +206,13 @@ class ImageEffects:
 
     def save(self):
         """ Saves modified image """
-        path = self.path.replace('main', 'edited')
+        path = self.path.replace('original', 'edited')
         edit_path = os.path.join(
-            os.path.dirname(os.path.dirname(
-                os.path.dirname(__file__))), 'media/edited')
+            os.path.dirname(os.path.dirname(__file__)), 'media/edited')
         if not os.path.exists(edit_path):
             os.makedirs(edit_path)
         self.image.save(path, format=self.image_format)
+
 
     def download(self, title):
         response = HttpResponse(content_type="image/jpg")
