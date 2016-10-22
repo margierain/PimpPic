@@ -15,11 +15,12 @@ class ImageSerializer(TimeStampMixinSerializer):
     thumbnail_url = serializers.CharField(
         source='image_thumbnail_url', read_only=True)
 
+  
     class Meta:
         model = Photo
         fields = ('id', 'image', 'edited_image', 'effects',
                   'share_image', 'uploader', 'folder', 'thumbnail_url')
-        read_only_fields = ('id', 'uploader', 'share_image', 'share_image',
+        read_only_fields = ('id', 'uploader', 'share_image',
                             'edited_image')
 
 

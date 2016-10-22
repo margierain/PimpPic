@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import View
 from django.contrib.auth.models import User
+from rest_framework import status
 from django.http import HttpResponse
 from rest_framework.response import Response
 from django.core.urlresolvers import reverse
@@ -20,46 +21,10 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     CreateAPIView,
 )
-
+from rest_framework.parsers import FormParser, MultiPartParser
 from .effect_processing import *
 
 
-
-class ImagePreview(RetrieveUpdateDestroyAPIView):
-    queryset = Photo.objects.all()
-    serializer_class = ImageSerializer
-    permission_classes = [IsOwner]
-    lookup_field = 'id'
-
-    def perform_update(self, request, *args, **kwargs):
-        img_id = self.kwargs.get('id', 0)
-        effect_obj = str(self.request.data.get('effects', ''))
-        photo = Photo.objects.filter(id=img_id).first()
-        response_data = {'image': ''}
-        if photo and effect_obj:
-            image_processor = ImageProcessor(photo)
-            image_processor.process(effect_obj)
-            response_data = {
-                'image': image_processor.preview(),
-                'applied_effects': image_processor.applied_effects()
-            }
-        response_json = json.dumps(response_data)
-        return HttpResponse(response_json, content_type="application/json")
-
-
-class SharePhoto(View):
-
-    def get(self, request, *args, **kwargs):
-        share_id = self.kwargs.get('id', 0)
-        response_data = {}
-        photo = Photo.objects.filter(pk=share_id).first()
-        if share_id and photo:
-            serializer = ImageSerializer(photo)
-            response_data = serializer.data
-            print(response_data)
-        response_json = json.dumps(response_data)
-        return HttpResponse(
-            response_data["image"], content_type="application/json")
 
 
 class FolderApiView(ListCreateAPIView):
@@ -78,13 +43,10 @@ class FolderApiView(ListCreateAPIView):
     """
 
     serializer_class = FolderSerializer
+    permission_classes = [IsOwner]
 
 
     def perform_create(self, serializer):
-        # print(dir(self))
-        # print(self.headers)
-        # print('user')
-        # print(self.request.user)
         serializer.save(creator=self.request.user)
 
     def get_queryset(self):
@@ -129,7 +91,7 @@ class ImageApiView(ListCreateAPIView):
     """
 
     serializer_class = ImageSerializer
-
+    permission_classes = [IsOwner]
 
     def perform_create(self, serializer):
         folder_id = self.kwargs.get('id', 0)
@@ -145,7 +107,7 @@ class ImageApiView(ListCreateAPIView):
             uploader=self.request.user, share_image=img_code)
         instance.file_size = int(instance.image.size / 1000)
         instance.save()
-
+    
     def get_queryset(self):
         folder_id = self.kwargs.get('id', 0)
         folder = Folder.objects.filter(id=folder_id).first()

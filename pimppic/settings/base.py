@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'social.apps.django_app.default',
     'oauth2_provider',
     'rest_framework_social_oauth2',
+    
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -126,11 +127,6 @@ USE_TZ = True
 
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',
-    #     'rest_framework.authentication.TokenAuthentication',
-
-    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
@@ -153,7 +149,7 @@ SITE_ID = 1
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = os.path.join('../', BASE_DIR, 'static'),
+STATICFILES_DIRS = os.path.join(BASE_DIR, 'static'),
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -172,6 +168,6 @@ AUTHENTICATION_BACKENDS = (
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://localhost:4200/home'
 SOCIAL_AUTH_LOGIN_URL = '/'
 
-SOCIAL_AUTH_FACEBOOK_SECRET = 'e22f87739b7589ef9c1cd28af96212c0'
-SOCIAL_AUTH_FACEBOOK_KEY = 1171930142882377
-SOCIALACCOUNT_QUERY_EMAIL = False
+SOCIAL_AUTH_FACEBOOK_SECRET = os.environ.get('FACEBOOK_SECRET')
+SOCIAL_AUTH_FACEBOOK_KEY = os.environ.get('FACEBOOK_KEY')
+SOCIALACCOUNT_QUERY_EMAIL = False 

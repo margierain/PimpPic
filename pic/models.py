@@ -38,7 +38,7 @@ class Photo(TimeStampMixin):
                                      format='JPEG',
                                      options={'quality': 60})
     edited_image = models.ImageField(upload_to='edited', blank=True)
-    effects = models.CharField(max_length=100, default="")
+    effects = models.CharField(max_length=100, blank=True)
     share_image = models.CharField(max_length=50, default="")
     uploader = models.ForeignKey(User, on_delete=models.CASCADE)
     folder = models.ForeignKey(
@@ -48,8 +48,11 @@ class Photo(TimeStampMixin):
     class Meta:
         ordering = ['date_modified']
 
-    def image_thumbnail_url(self):
-        return self.image_thumbnail.url
+    # def image_thumbnail_url(self):
+    #     return self.image_thumbnail.url
 
     def __str__(self):
         return self.effects
+
+    def __unicode__(self):
+        return unicode(self.effects)    

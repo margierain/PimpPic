@@ -1,16 +1,13 @@
-
-.coveralls.yml
-# C extensions
-
 .idea
 staticfiles/*
 bower_components/*
 
 
 # Unit test / coverage reports
+*.pyc
 
-.coverage
-.coverage.*
-.coveralls.yml
+*.coverage
 
 
+*pic/migrations/
+*media/*
