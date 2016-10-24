@@ -8,5 +8,5 @@ class IsOwner(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if type(obj) is Photo:
-            return obj.image.creator == request.user
-        return obj.uploader == request.user
+            return obj.uploader == request.user
+        return obj.creator == request.user 
