@@ -78,7 +78,6 @@ class ImageEffects:
         Used to enhance image brightness,
         color, contrast and sharpness.
         """
-        # import ipdb; ipdb.set_trace()
         enhancer = getattr(ImageEnhance, str(enhancement_type))
         if enhancer:
             enhance_value = (value / 10) * self.max_enhance

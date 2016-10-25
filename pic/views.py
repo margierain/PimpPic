@@ -25,7 +25,8 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from .effect_processing import *
 
 
-
+def index(req):
+    return HttpResponse('index - Nothing here')
 
 class FolderApiView(ListCreateAPIView):
 

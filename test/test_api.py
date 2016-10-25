@@ -144,7 +144,6 @@ class ImageTest(APITestCase):
     # @override_settings(MEDIA_ROOT=tempfile.gettempdir())
     # def test_upload_image_to_api_endpoint(self):
     #     """ Test a user can upload an image"""
-    #     import ipdb; ipdb.set_trace()
     #     temp = tempfile.NamedTemporaryFile(suffix=".jpg").name
     #     test_image = get_temporary_image(temp)
     #     with open(test_image) as image:

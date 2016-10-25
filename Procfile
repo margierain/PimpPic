@@ -1,1 +1,1 @@
-web: gunicorn pimppic.wsgi; --log-file -
+web: gunicorn pimppic.wsgi --log-file -
