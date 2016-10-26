@@ -105,7 +105,6 @@ class ImageEffects:
 
     def contrast(self, cutoff=0):
         """ Normalize image contrast. """
-        print('contra')
         self.convert()
         actual_value = float(cutoff)/10 * 50
         self.image = ImageOps.autocontrast(self.image, int(actual_value))
@@ -179,30 +178,6 @@ class ImageEffects:
         self.effects_applied('crop')
         self.save()
 
-    def set_font(self, font_size=100, font_name="TRIBTWO.ttf"):
-        """ Sets the font to be used for text drawing """
-        fonts_path = os.path.join(
-            os.path.dirname(os.path.dirname(
-                os.path.dirname(__file__))), 'static/fonts')
-        font_file =  fonts_path + '/' + font_name
-        self.font = ImageFont.truetype(font_file, font_size)
-
-    def text(self, text, x, y, fill=(255, 255, 255), font_size=100, font_name="TRIBTWO.ttf"):
-        """ Write text on an image """
-        draw = ImageDraw.Draw(self.image)
-        if not self.font:
-            self.set_font(font_size, font_name)
-        draw.text((x, y), text, font=self.font, fill=fill)
-        del draw
-        self.effect_applied('text')
-
-    def preview(self):
-        """ Returns a base64 converted image """
-        print('preview')
-        buffered = cStringIO.StringIO()
-        self.image.save(buffered, format=self.image_format)
-        return base64.b64encode(buffered.getvalue())
-
     def save(self):
         """ Saves modified image """
         path = self.path.replace('original', 'edited')
@@ -211,10 +186,3 @@ class ImageEffects:
         if not os.path.exists(edit_path):
             os.makedirs(edit_path)
         self.image.save(path, format=self.image_format)
-
-
-    def download(self, title):
-        response = HttpResponse(content_type="image/jpg")
-        self.image.save(response, 'JPEG')
-        response['Content-Disposition'] = 'attachment; filename="{}.jpg"'.format(title)
-        return response

@@ -98,25 +98,29 @@ class ImageApiView(ListCreateAPIView):
         folder_id = self.kwargs.get('id', 0)
         folder_id = self.request.POST.get('folder_id', 0)
         folder = Folder.objects.filter(
-            creator=self.request.user, id=folder_id).first()
+            creator=self.request.user.id, id=folder_id).first()
         img_code = str(time.time())
         if folder:
             instance = serializer.save(
-                uploader=self.request.user, folder=folder,
+                uploader=self.request.user.id, folder=folder,
                 share_image=img_code)
         instance = serializer.save(
-            uploader=self.request.user, share_image=img_code)
+            uploader=self.request.user.id, share_image=img_code)
         instance.file_size = int(instance.image.size / 1000)
         instance.save()
     
     def get_queryset(self):
         folder_id = self.kwargs.get('id', 0)
         folder = Folder.objects.filter(id=folder_id).first()
+        print "--------USER-----------"
+        print self.request.user
+        print self.request
+        print dir(self.request)
         if(folder):
             image = Photo.objects.filter(
-                uploader=self.request.user, folder=folder)
+                uploader=self.request.user.id, folder=folder)
         else:
-            image = Photo.objects.filter(uploader=self.request.user)
+            image = Photo.objects.filter(uploader=self.request.user.id)
         return image
 
 

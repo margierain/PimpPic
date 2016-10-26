@@ -10,28 +10,62 @@ from django.test import override_settings
 from django.core.urlresolvers import reverse
 
 # Facebook graphapi test user access token
-fb_token = ''
+fb_token = 'EAAQp3TZCeOkkBAG4KMAvSpChKz1vZBu9nqX1Y9O52kaIMfvEeksgZANP4oToklhr950Gryd3UURRM7QJ972y2LtGk7mVo0i6RQv8hbR1lWj0JI0QhibXfLSl5BNtP1w78ZBBUXPPTjWsXnnoyD6Dce3mVZBI1fwnyiaiHwpiZBHgZDZD'
+
+
+# def create_folder(client, name):
+#     """set up to create a folder"""
+#     data = {
+#         'name': name
+#     }
+#     return client.post('/api/folders/', data)
+
+def create_photo(client, folder_id=0):
+    """set up to upload image"""
+    path = os.path.join(os.path.dirname(__file__), 'op3.jpeg')
+    with open(path) as photo:
+        data = {
+            'image': photo,
+            'folder_id':folder_id
+        }
+        return client.post('/api/images/', data)
+    return None    
+
 class FolderTest(APITestCase):
     """Test /api/folders/ endpoint"""
 
 
     def setUp(self):
         """Set up fb login."""
-        self.client.get("/login/facebook/" + "Bearer facebook " + fb_token)
+        self.client.credentials(
+             HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+        self.client.get("/login/facebook/?access_token=" + fb_token)
         user = User.objects.create(
             username='testuser', password='testpassword')
         self.uploader = User.objects.filter(id=user.id).first()
+
+        # data = {
+        #     'name': 'test_folder'
+        # }
+        # create_folder = Folder.objects.create(name="test_folder", creator=self.uploader)
         data = {
-            'name': 'test_folder'
+            "name": "test_folder_{}".format(user.id),
+            "creator": self.uploader
         }
-        create_folder = Folder.objects.create(name="test_folder", creator=self.uploader)
-       
+        # create_folder = self.client.post('/api/folders/', data)
+      
+    
+    # def tearDown(self):
+    #     """Delete user modal after use"""
+    #     del user
+        
+           
         
     def test_get_all_images(self):
         """Test for getting all the images"""
         self.client.credentials(
              HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
-        response = self.client.get('/api/folders/')
+        response = self.client.get('/api/images/')
         self.assertEqual(response.status_code, 200)
     
 
@@ -49,7 +83,8 @@ class FolderTest(APITestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
         data = {
-            'name': 'test_folder'
+            'name': 'test_folder_2',
+            'creator': self.uploader
         }
         response = self.client.post('/api/folders/', data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -63,22 +98,22 @@ class FolderTest(APITestCase):
         detail = response.data.get('detail')
         self.assertIn('Invalid OAuth access token', detail)
     
+    
     # def test_folder_update(self):
-    #     """Test folder name update"""
     #     self.client.credentials(
     #         HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
-    #     folder = Folder.objects.first()
-    #     url = "/api/folder/{}/".format(folder.id)
-    #     folder_name = {
-    #         'name': 'test_folder'
-    #     }
-    #     response = self.client.put(url, folder_name, format='json')
-    #     print('jill', folder_name, 'hill', folder_name['name'] )
-    #     self.assertIn(folder_name['name'], response.folder_name.get('name'))
-       
+    #     response = create_folder(self.client, 'test')
+    #     result = decode_json(response)
+    #     folder_id = result.get('id', 0)
+    #     response = self.client.put('/api/folders/' + str(folder_id) + '/', {'name':"test edit"})
+    #     result = decode_json(response)
+    #     self.assertEqual(result.get('name'), 'test edit')
+   
         
 
     # def test_folder_delete(self):
+    #     self.client.credentials(
+    #         HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
     #     response = create_folder(self.client, 'test')
     #     result = decode_json(response)
     #     folder_id = result.get('id', 0)
@@ -86,11 +121,7 @@ class FolderTest(APITestCase):
     #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     
-def get_temporary_image(temp_file):
-    """Generate dummy image file."""
-    image = Image.new('RGBA', size=(50, 50), color=(155, 0, 0))
-    image.save(temp_file, 'jpeg')
-    return temp_file
+
 
 
 class ImageTest(APITestCase):
@@ -98,167 +129,164 @@ class ImageTest(APITestCase):
 
     def setUp(self):
         """Set up base user and details for test running."""
-        self.client = self.client.credentials(
+        user = User.objects.create(
+            username='testuser', password='testpassword')
+        self.uploader = User.objects.filter(id=user.id).first()
+        temp = tempfile.NamedTemporaryFile(suffix=".jpg").name
+           
+
+
+    def photo_effect(self, effects):
+        response = create_photo(self.client)
+        result = self.decode_json(response)
+        img_id = result.get('id', 0)
+        data = {
+            'img_id': photo_id,
+            'effects': effects,
+            'uploader': self.uploader
+        }
+        response = self.client.post('/api/images/' + str(img_id), data)
+        return self.decode_json(response)
+
+
+    def test_photo_create_without_folder(self):
+        self.client.credentials(
             HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+        response = create_photo(self.client)
+        self.assertEqual(response.status_code, 201)
+            
+    def test_img_filters_to_blur(self):
+        """ Test images can be updated"""
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+        response = create_photo(self.client)
+        img_id = response.data.get('id', 0)
+        data = {
+            'effects':'{"filter":"blur"}'
+        }
+        response = self.client.put(
+            '/api/images/' + str(img_id) + '/', data)
+        self.assertEqual(response.data.get('id'), img_id)
+        self.assertIn(str(response.data.get('effects')), '{"filter":"blur"}')
 
+        
+    def test_img_effect_sharpness(self):
+        """ Test images can be updated"""
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+        response = create_photo(self.client)
+        img_id = response.data.get('id', 0)
+        data = {
+            
+            'effects':'{"enhance":["Sharpness","7"]}'
+        }
+        response = self.client.put(
+            '/api/images/' + str(img_id) + '/', data)
+        self.assertEqual(response.data.get('id'), img_id)
+        self.assertIn(str(response.data.get('effects')), '{"enhance":["Sharpness","7"]}')
 
-    # def upload_photo(client, folder_id=0):
-    #     """Upload image set up"""
-    #     path = os.path.join(os.path.dirname(os.path.dirname(
-    #         os.path.dirname(__file__))), 'media/images/imageFolder.jpeg')
-    #     with open(path) as image:
-    #         data = {
-    #             'image': image,
-    #             'folder_id': folder_id
-    #         }
-    #         return client.post('/api/photos/', data)
-    #     return None
+    def test_img_effect_quantize(self):
+            """ Test images can be updated"""
+            self.client.credentials(
+                HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+            response = create_photo(self.client)
+            img_id = response.data.get('id', 0)
+            data = {
+                
+                'effects':'{"effect":["quantize","5"]}'
+            }
+            response = self.client.put(
+                '/api/images/' + str(img_id) + '/', data)
+            self.assertEqual(response.data.get('id'), img_id)
+            self.assertIn(str(response.data.get('effects')), '{"effect":["quantize","5"]}')
+            
+    def test_img_effect_gaussian_blur(self):
+            """ Test images can be updated"""
+            self.client.credentials(
+                HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+            response = create_photo(self.client)
+            img_id = response.data.get('id', 0)
+            data = {
+                
+                'effects':'{"effect":["gaussian_blur","5"]}'
+            }
+            response = self.client.put(
+                '/api/images/' + str(img_id) + '/', data)
+            self.assertEqual(response.data.get('id'), img_id)
+            self.assertIn(str(response.data.get('effects')), '{"effect":["gaussian_blur","5"]}')
 
-    # def decode_json(response):
-    #     return json.loads(response.content)
+    def test_img_posterize_effect(self):
+            """ Test images can be updated"""
+            self.client.credentials(
+                HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+            response = create_photo(self.client)
+            img_id = response.data.get('id', 0)
+            data = {
+                
+                'effects':'{"effect":["posterize","5"]}'
+            }
+            response = self.client.put(
+                '/api/images/' + str(img_id) + '/', data)
+            self.assertEqual(response.data.get('id'), img_id)
+            self.assertIn(str(response.data.get('effects')), '{"effect":["posterize","5"]}')
 
+    def test_img_rotates(self):
+            """ Test images can be updated"""
+            self.client.credentials(
+                HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+            response = create_photo(self.client)
+            img_id = response.data.get('id', 0)
+            data = {
+                
+                'effects':'{"effect":["rotate","5"]}'
+            }
+            response = self.client.put(
+                '/api/images/' + str(img_id) + '/', data)
+            self.assertEqual(response.data.get('id'), img_id)
+            self.assertIn(str(response.data.get('effects')), '{"effect":["rotate","5"]}') 
 
-    # def photo_effect(self, effects):
-    #     response = self.upload_photo(self.client)
-    #     result = self.decode_json(response)
-    #     img_id = result.get('id', 0)
-    #     data = {
-    #         'img_id': photo_id,
-    #         'effects': effects
-    #     }
-    #     response = self.client.post(
-    #         '/api/photos/' + str(img_id) + '/preview/', data)
-    #     return self.decode_json(response)
+    def test_img_rotates(self):
+        """ Test images can be updated"""
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+        response = create_photo(self.client)
+        img_id = response.data.get('id', 0)
+        data = {
+            
+            'effects': '{"enhance":["Contrast","7"]}'
+        }
+        response = self.client.put(
+            '/api/images/' + str(img_id) + '/', data)
+        self.assertEqual(response.data.get('id'), img_id)
+        self.assertIn(str(response.data.get('effects')), '{"enhance":["Contrast","7"]}') 
 
-    # def test_img_update(self):
-    #     """ Test images can be updated"""
-    #     response = self.upload_photo(self.client)
-    #     result = self.decode_json(response)
-    #     img_id = result.get('id', 0)
-    #     response = self.client.put(
-    #         '/api/images/' + str(img_id) + '/', {'effects': 'blur'})
-    #     result = self.decode_json(response)
-    #     self.assertEqual(result.get('id'), img_id)
-    #     self.assertEqual(result.get('effects'), 'blur')
+          
 
-    # @override_settings(MEDIA_ROOT=tempfile.gettempdir())
-    # def test_upload_image_to_api_endpoint(self):
-    #     """ Test a user can upload an image"""
-    #     temp = tempfile.NamedTemporaryFile(suffix=".jpg").name
-    #     test_image = get_temporary_image(temp)
-    #     with open(test_image) as image:
-    #         response = self.client.post(
-    #             '/api/images/',
-    #             {'image': image},
-    #             format='application/json'
-    #         )
-    #     self.assertEqual(response.status_code, 201)
+    def test_img_transformation(self):
+        """ Test images can be updated"""
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+        response = create_photo(self.client)
+        img_id = response.data.get('id', 0)
+        data = {
+             'effects': '{"transform":"black_and_white"}'
+        }
+        response = self.client.put(
+            '/api/images/' + str(img_id) + '/', data)
+        self.assertEqual(response.data.get('id'), img_id)
+        self.assertIn(str(response.data.get('effects')), '{"transform":"black_and_white"}')  
+                    
 
-    # def test_all_images_are_retrieved(self):
-    #     """Test for retrieving all the images"""
-    #     response = self.client.get(reverse(image-list))
-    #     self.assertEqual(response.status_code, 200)    
+    def test_login_successful(self):
+        """Test that a GET to api/login/(?P<backend>[^/]+)/ logins user successfully"""
 
-#     def test__downloading_image(self):
-#         """ Test user can download images they have edited"""
-#         response = self.upload_photo(self.client)
-#         result = self.decode_json(response)
-#         img_id = result.get('id', 0)
-#         response = self.client.get('/download?image=' + str(img_id))
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Bearer facebook ' + fb_token)
+        response = self.client.get(
+            "/login/facebook/?access_token=" + fb_token)
+        self.assertEqual(302, response.status_code)
 
-#     def test_img_deletion(self):
-#         """ Test use can delete images """
-#         response = self.upload_photo(self.client)
-#         result = self.decode_json(response)
-#         img_id = result.get('id', 0)
-#         response = self.client.delete('/api/photos/' + str(img_id) + '/')
-#         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-
-#     def test_display_of_images(self):
-#         """ Test all images are displayed on get request"""
-#         self.upload_photo(self.client)
-#         response = self.client.get('/api/photos/')
-#         result = self.decode_json(response)
-#         self.assertEqual(result.get('count'), 1)
-
-#     def test_folder_list_photos(self):
-#         """Test user can view folder per folder"""
-#         response = create_folder(self.client, 'test')
-#         result = self.decode_json(response)
-#         folder_id = result.get('id', 0)
-#         self.upload_photo(self.client, folder_id)
-#         response = self.client.get(
-#             '/api/folders/' + str(folder_id) + '/photos/')
-#         result = self.decode_json(response)
-#         self.assertEqual(result.get('count'), 1)
-
-#     def test_folder_list_untitled_photos(self):
-#         """ Test that an untitled folder can contain images"""
-#         self.upload_photo(self.client)
-#         self.upload_photo(self.client)
-#         response = self.client.get('/api/folders/0/photos/')
-#         result = self.decode_json(response)
-#         self.assertEqual(result.get('count'), 1)
-
-#     def test_photo_effect_update(self):
-#         """ Test user can update effects on images"""
-#         response = self.upload_photo(self.client)
-#         result = self.decode_json(response)
-#         img_id = result.get('id', 0)
-#         data = {
-#             'title': 'update img effect',
-#             'effects': '{"enhance":{"Brightness":"65"},"filter":{"blur":"true"},"transform":{"mirror":"true"},"effect":{"quantize":"50","gaussian_blur":"50","auto_contrast":"50","posterize":"50","unsharp_mask":"50","solarize":"50","remove_border":"50","rotate":"50"}}'
-#         }
-#         response = self.client.put('/api/photos/' + str(img_id) + '/', data)
-#         result = self.decode_json(response)
-#         self.assertEqual(result.get('title'), 'update img effect')
-
-#     def test_photo_effect_preview(self):
-#         """ Test user can preview efects to be applied on images"""
-#         response = self.upload_photo(self.client)
-#         result = self.photo_effect(
-#             '{"transform":{"vertical_flip":"true","invert":"true","grayscale":"true","black_and_white":"true","equalize":"true"}}')
-#         applied_effect = 'invert' in result.get('applied_effects', [])
-#         self.assertNotEqual(result.get('image'), None)
-#         self.assertTrue(applied_effect)
-
-#     def test_text_overlay_on_images(self):
-#         """ Test user can append text on images"""
-#         response = self.upload_photo(self.client)
-#         result = self.photo_effect(
-#             '{"text_overlay":{"textValue":"love is key","fontSize":"26","x":"22","y":"24","color":"#ff3400","font_name":"dahot2.Filxgirl.ttf"}}')
-#         applied_effect = 'text' in result.get('applied_effects', [])
-#         self.assertTrue(applied_effect)
-#         self.assertNotEqual(result.get('image'), '')
-#         self.assertNotEqual(result.get('image'), None)
-
-#     def test_photo_effect_colorize(self):
-#         """ Test user can colorize images"""
-#         response = self.upload_photo(self.client)
-#         result = self.photo_effect(
-#             '{"colorize":{"black":"#5f1212","white":"#8b572a"}}')
-#         applied_effect = 'colorize' in result.get('applied_effects', [])
-#         self.assertTrue(applied_effect)
-#         self.assertNotEqual(result.get('image'), '')
-#         self.assertNotEqual(result.get('image'), None)
-
-#     def test_photo_effect_border(self):
-#         """ Test user can apply border effect"""
-#         response = self.upload_photo(self.client)
-#         result = self.photo_effect(
-#             '{"border":{"size":"26","border_color":"#ff3737"}}')
-#         applied_effect = 'border' in result.get('applied_effects', [])
-#         self.assertTrue(applied_effect)
-#         self.assertNotEqual(result.get('image'), '')
-#         self.assertNotEqual(result.get('image'), None)
-
-#     def test_photo_share(self):
-#         """ Test user can share photoes"""
-#         response = self.upload_photo(self.client)
-#         result = self.decode_json(response)
-#         share_id = result.get('share_code', '')
-#         response = self.client.get('/api/photos/share/?share_id=' + share_id)
-#         result = self.decode_json(response)
-#         self.assertEqual(result.get('share_code'), share_id)
+    # def tearDown(self):
+    #     """Delete user modal after use"""
+    #     del self.user
+        
