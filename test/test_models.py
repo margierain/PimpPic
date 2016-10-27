@@ -1,6 +1,6 @@
 from PIL import Image
 from django.contrib.auth.models import User
-from pic. models import *
+from pic.models import *
 from django.test import TestCase, override_settings
 import tempfile
 

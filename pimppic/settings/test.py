@@ -8,8 +8,7 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 NOSE_ARGS = [
-    '--with-coverage',
-    '--cover-package=api',
+    '--with-coverage'
 ]
 
 DATABASES = {

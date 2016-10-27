@@ -16,7 +16,7 @@ class TimeStampMixin(models.Model):
 
 
 class Folder(TimeStampMixin):
-    name = models.CharField(max_length=100, default="untitled")
+    name = models.CharField(max_length=100, blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
@@ -48,8 +48,6 @@ class Photo(TimeStampMixin):
     class Meta:
         ordering = ['date_modified']
 
-    # def image_thumbnail_url(self):
-    #     return self.image_thumbnail.url
 
     def __str__(self):
         return self.effects

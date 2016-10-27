@@ -21,7 +21,6 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     CreateAPIView,
 )
-from rest_framework.parsers import FormParser, MultiPartParser
 from .effect_processing import *
 
 
@@ -44,11 +43,13 @@ class FolderApiView(ListCreateAPIView):
     """
 
     serializer_class = FolderSerializer
-    permission_classes = [IsOwner]
+    permission_classes = (IsAuthenticated, IsOwner,)
 
 
     def perform_create(self, serializer):
-        serializer.save(creator=self.request.user)
+        if serializer.is_valid:
+            # import ipdb; ipdb.set_trace()
+            serializer.save(creator=self.request.user)
 
     def get_queryset(self):
         queryset = Folder.objects.filter(creator=self.request.user)
@@ -72,7 +73,8 @@ class SingleFolderAPIView(RetrieveUpdateDestroyAPIView):
     """
     queryset = Folder.objects.all()
     serializer_class = FolderSerializer
-    permission_classes = [IsOwner]
+    permission_classes = (IsAuthenticated, IsOwner,)
+
     lookup_field = 'id'
 
 
@@ -92,35 +94,35 @@ class ImageApiView(ListCreateAPIView):
     """
 
     serializer_class = ImageSerializer
-    permission_classes = [IsOwner]
+    permission_classes = (IsAuthenticated, IsOwner,)
+
 
     def perform_create(self, serializer):
         folder_id = self.kwargs.get('id', 0)
         folder_id = self.request.POST.get('folder_id', 0)
         folder = Folder.objects.filter(
-            creator=self.request.user.id, id=folder_id).first()
+            creator=self.request.user, id=folder_id).first()
         img_code = str(time.time())
-        if folder:
+        if serializer.is_valid:
+            if folder:
+                instance = serializer.save(
+                    uploader=self.request.user, folder=folder,
+                    share_image=img_code)
             instance = serializer.save(
-                uploader=self.request.user.id, folder=folder,
-                share_image=img_code)
-        instance = serializer.save(
-            uploader=self.request.user.id, share_image=img_code)
-        instance.file_size = int(instance.image.size / 1000)
-        instance.save()
-    
+                uploader=self.request.user, share_image=img_code)
+            instance.file_size = int(instance.image.size / 1000)
+            instance.save()
+        
+                
+        
     def get_queryset(self):
         folder_id = self.kwargs.get('id', 0)
         folder = Folder.objects.filter(id=folder_id).first()
-        print "--------USER-----------"
-        print self.request.user
-        print self.request
-        print dir(self.request)
         if(folder):
             image = Photo.objects.filter(
-                uploader=self.request.user.id, folder=folder)
+                uploader=self.request.user, folder=folder)
         else:
-            image = Photo.objects.filter(uploader=self.request.user.id)
+            image = Photo.objects.filter(uploader=self.request.user)
         return image
 
 
@@ -141,7 +143,7 @@ class SingleImageAPIView(RetrieveUpdateDestroyAPIView):
     """
     queryset = Photo.objects.all()
     serializer_class = ImageSerializer
-    permission_classes = [IsOwner]
+    permission_classes = (IsAuthenticated, IsOwner,)
     lookup_field = 'id'
 
     def perform_update(self, serializer):

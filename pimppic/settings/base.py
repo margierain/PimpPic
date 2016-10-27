@@ -159,13 +159,13 @@ SOCIALACCOUNT_STORE_TOKENS = True
 
 
 AUTHENTICATION_BACKENDS = (
-    'social.backends.facebook.FacebookOAuth2',
-    'rest_framework_social_oauth2.backends.DjangoOAuth2',
     'django.contrib.auth.backends.ModelBackend',
-    )
+    'social.backends.facebook.FacebookOAuth2',
+    'rest_framework_social_oauth2.backends.DjangoOAuth2', 
+)
 
 
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://localhost:4200/home'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'https://picfront.firebaseapp.com/home'
 SOCIAL_AUTH_LOGIN_URL = '/'
 
 SOCIAL_AUTH_FACEBOOK_SECRET = os.environ.get('FACEBOOK_SECRET')
