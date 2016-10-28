@@ -24,9 +24,6 @@ from rest_framework.generics import (
 from .effect_processing import *
 
 
-def index(req):
-    return HttpResponse('index - Nothing here')
-
 class FolderApiView(ListCreateAPIView):
 
     """
