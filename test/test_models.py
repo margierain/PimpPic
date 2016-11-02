@@ -1,8 +1,9 @@
+import tempfile
 from PIL import Image
 from django.contrib.auth.models import User
-from pic.models import *
-from django.test import TestCase, override_settings
-import tempfile
+from rest_framework.test import APITestCase, APIClient
+from django.test import override_settings
+from pic.models import Photo, Folder
 
 
 def get_dummy_image(temp_file):
@@ -14,7 +15,7 @@ def get_dummy_image(temp_file):
     image.save(temp_file, 'jpeg')
     return temp_file
 
-class PhotoEditingTest(TestCase):
+class PhotoEditingTest(APITestCase):
     """Test model creation ."""
 
     def setUp(self):
@@ -26,17 +27,24 @@ class PhotoEditingTest(TestCase):
             username=data["name"], password=data["password"])
         self.uploader = User.objects.filter(id=user.id).first()
 
-    # @override_settings(MEDIA_ROOT=tempfile.gettempdir())
-    # def test_image_upload(self):
-    #     """Check correct image upload and filters creation."""
+    @override_settings(MEDIA_ROOT=tempfile.gettempdir())
+    def test_image_upload(self):
+        """Check correct image upload and filters creation."""
+        self.client.force_authenticate(self.uploader)
+        image = tempfile.NamedTemporaryFile(suffix=".jpg").name
+        test_image = get_dummy_image(image)
+        picture = Photo.objects.create(
+            image=test_image, uploader=self.uploader)
+        picture.save()
+        search = Photo.objects.filter(image=test_image).first()
+        self.assertEqual(len(Photo.objects.all()), 1)
+        self.assertIn(test_image, str(search.image))
+        self.assertIsInstance(picture, Photo)
 
-    #     image = tempfile.NamedTemporaryFile(suffix=".jpg").name
-    #     test_image = get_temporary_image(image)
-    #     picture = models.Image.objects.create(
-    #         image=test_image, uploader=self.uploader)
-    #     search = models.Image.objects.filter(image=test_image).first()
-    #     self.assertEqual(len(models.Image.objects.all()), 1)
-    #     self.assertEqual(len(models.Img_edited.objects.all()), 10)
-    #     self.assertTrue(models.Img_edited.objects.get(effect='blur'))
-    #     self.assertIn(test_image, search.original_image.name)
-    #     self.assertIsInstance(picture, models.Image)
+    def test_folder_model(self):
+        """Test folder model"""
+        folder = Folder.objects.create(name="new_test_folder", creator=self.uploader)
+        folder.save()
+        self.assertEqual(len(Folder.objects.all()), 1)
+        self.assertIn("new_test_folder", str(folder.name))
+        self.assertIsInstance(folder, Folder)

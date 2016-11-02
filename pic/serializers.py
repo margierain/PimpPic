@@ -19,9 +19,9 @@ class ImageSerializer(TimeStampMixinSerializer):
     class Meta:
         model = Photo
         fields = ('id', 'image', 'edited_image', 'effects',
-                  'share_image', 'uploader', 'folder', 'thumbnail_url')
+                  'share_image', 'uploader', 'folder', 'thumbnail_url', 'date_created', 'date_modified')
         read_only_fields = ('id', 'uploader', 'share_image',
-                            'edited_image')
+                            'edited_image','date_created', )
 
 
 class FolderSerializer(TimeStampMixinSerializer):
@@ -30,5 +30,5 @@ class FolderSerializer(TimeStampMixinSerializer):
 
     class Meta:
         model = Folder
-        fields = ('id', 'name', 'creator', 'images')
-        read_only_fields = ('creator', 'id',)
+        fields = ('id', 'name', 'creator', 'images', 'date_created','date_modified')
+        read_only_fields = ('creator', 'id','date_created',)

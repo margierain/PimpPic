@@ -45,7 +45,6 @@ class FolderApiView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         if serializer.is_valid:
-            # import ipdb; ipdb.set_trace()
             serializer.save(creator=self.request.user)
 
     def get_queryset(self):
@@ -162,3 +161,4 @@ class SingleImageAPIView(RetrieveUpdateDestroyAPIView):
         if(os.path.isfile(instance.image.path.replace('original', 'edited'))):
             os.remove(instance.image.path.replace('original', 'edited'))
         instance.delete()
+
