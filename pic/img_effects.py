@@ -70,7 +70,7 @@ class ImageEffects:
         """
         enhancer = getattr(ImageEnhance, str(enhancement_type))
         if enhancer:
-            enhance_value = (value / 10) * self.max_enhance
+            enhance_value = (value / 5) * self.max_enhance
             enhanced = enhancer(self.image)
             self.image = enhanced.enhance(enhance_value)
 
@@ -126,7 +126,7 @@ class ImageEffects:
         self.black_and_white()
         self.image = ImageOps.colorize(self.image, black, white)
 
-    def expand(self, border=10, fill="#ff0"):
+    def expand(self, border=12, fill="#ff0"):
         """ Add border to image """
         self.image = ImageOps.expand(self.image, border=border, fill=fill)
 

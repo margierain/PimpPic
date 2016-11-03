@@ -15,13 +15,13 @@ class ImageSerializer(TimeStampMixinSerializer):
     thumbnail_url = serializers.CharField(
         source='image_thumbnail_url', read_only=True)
 
-  
     class Meta:
         model = Photo
         fields = ('id', 'image', 'edited_image', 'effects',
-                  'share_image', 'uploader', 'folder', 'thumbnail_url', 'date_created', 'date_modified')
+                  'share_image', 'uploader', 'folder', 'thumbnail_url',
+                  'date_created', 'date_modified')
         read_only_fields = ('id', 'uploader', 'share_image',
-                            'edited_image','date_created', )
+                            'edited_image', 'date_created', )
 
 
 class FolderSerializer(TimeStampMixinSerializer):
@@ -30,5 +30,6 @@ class FolderSerializer(TimeStampMixinSerializer):
 
     class Meta:
         model = Folder
-        fields = ('id', 'name', 'creator', 'images', 'date_created','date_modified')
-        read_only_fields = ('creator', 'id','date_created',)
+        fields = ('id', 'name', 'creator', 'images',
+                  'date_created', 'date_modified')
+        read_only_fields = ('creator', 'id', 'date_created',)

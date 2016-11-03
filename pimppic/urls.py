@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url('', include('social.apps.django_app.urls', namespace='social')),
+    url(r'', include('social.apps.django_app.urls', namespace='social')),
     url(r'^auth/', include('rest_framework_social_oauth2.urls')),
     url(r'^api/', include('pic.urls'), name='pic_api'),
     url(r'^rest-auth/', include('rest_auth.urls')),

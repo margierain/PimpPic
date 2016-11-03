@@ -39,9 +39,8 @@ class FolderApiView(ListCreateAPIView):
       Response: JSON
     """
 
-    serializer_class = FolderSerializer
     permission_classes = (IsAuthenticated, IsOwner,)
-
+    serializer_class = FolderSerializer
 
     def perform_create(self, serializer):
         if serializer.is_valid:
@@ -92,10 +91,8 @@ class ImageApiView(ListCreateAPIView):
     serializer_class = ImageSerializer
     permission_classes = (IsAuthenticated, IsOwner,)
 
-
     def perform_create(self, serializer):
-        folder_id = self.kwargs.get('id', 0)
-        folder_id = self.request.POST.get('folder_id', 0)
+        folder_id = self.request.POST.get('id', 0)
         folder = Folder.objects.filter(
             creator=self.request.user, id=folder_id).first()
         img_code = str(time.time())
@@ -108,9 +105,7 @@ class ImageApiView(ListCreateAPIView):
                 uploader=self.request.user, share_image=img_code)
             instance.file_size = int(instance.image.size / 1000)
             instance.save()
-        
-                
-        
+
     def get_queryset(self):
         folder_id = self.kwargs.get('id', 0)
         folder = Folder.objects.filter(id=folder_id).first()
@@ -161,4 +156,3 @@ class SingleImageAPIView(RetrieveUpdateDestroyAPIView):
         if(os.path.isfile(instance.image.path.replace('original', 'edited'))):
             os.remove(instance.image.path.replace('original', 'edited'))
         instance.delete()
-

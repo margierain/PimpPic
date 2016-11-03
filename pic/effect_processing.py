@@ -2,6 +2,8 @@ from img_effects import ImageEffects
 import itertools
 import json
 applied = []
+
+
 class ImageProcessor:
 
     def __init__(self, photo):
@@ -12,29 +14,27 @@ class ImageProcessor:
         except ValueError:
             self.img_effects = ImageEffects(photo.image.path)
 
-        
-
     def process(self, effect_obj):
         effect_obj = json.loads(effect_obj)
         for effect_type in effect_obj:
             effect_type = str(effect_type)
             effect_data = effect_obj[effect_type]
-            self.applied_effects({effect_type:effect_data})
+            self.applied_effects({effect_type: effect_data})
             for i in applied:
                 if ("enhance" in effect_type or "effect" in effect_type):
                     editor_method = getattr(self, effect_type)
                     if editor_method:
                         editor_method(effect_data)
-                else:        
+                else:
                     effect_data = str(effect_data)
                     if(effect_data) and ("enhance" not in effect_type):
                         try:
                             editor_method = getattr(self, effect_type)
                             if editor_method:
-                               editor_method(effect_data)
+                                editor_method(effect_data)
                         except:
                             pass
-            self.img_effects.save()               
+            self.img_effects.save()
 
     def preview(self):
         return self.img_effects.preview()
@@ -50,14 +50,13 @@ class ImageProcessor:
 
     def enhance(self, effect_data):
         list = []
-        for i in effect_data: 
+        for i in effect_data:
             list.append(str(i))
-        enhancement = dict(itertools.izip_longest(*[iter(list)] * 2, fillvalue=""))
+        enhancement = dict(itertools.izip_longest(
+            *[iter(list)] * 2, fillvalue=""))
         for effect, values in enhancement.iteritems():
             self.img_effects.enhance(
                 effect, float(values))
-       
-
 
     def filter(self, effect_data):
         self.img_effects.filter(effect_data)
