@@ -1,0 +1,12 @@
+.idea
+staticfiles/*
+bower_components/*
+
+
+# Unit test / coverage reports
+*.pyc
+*.coverage
+*.DS_Store
+
+*pic/migrations/
+*media/*
